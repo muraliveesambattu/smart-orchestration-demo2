@@ -459,6 +459,7 @@ describe('Item CRUD Operations', () => {
       cy.get('#price').type('10.00');
       cy.get('#submit-btn').click();
       cy.get('#message').should('contain', 'Item created successfully!');
+      cy.wait(500); // Wait for UI update
 
       // Create second item with same name
       cy.get('#name').type(duplicateName);
@@ -466,9 +467,18 @@ describe('Item CRUD Operations', () => {
       cy.get('#price').type('20.00');
       cy.get('#submit-btn').click();
       cy.get('#message').should('contain', 'Item created successfully!');
+      cy.wait(500); // Wait for UI update
 
-      // Verify both items exist
-      cy.get('.item-card').contains(duplicateName).should('have.length.at.least', 2);
+      // Verify both items exist by counting all cards containing the name
+      cy.get('.item-card').then(($cards) => {
+        let count = 0;
+        $cards.each((index, card) => {
+          if (Cypress.$(card).text().includes(duplicateName)) {
+            count++;
+          }
+        });
+        expect(count).to.be.at.least(2);
+      });
     });
   });
 
@@ -759,12 +769,14 @@ describe('Item CRUD Operations', () => {
     it('should allow decimal values in price field', () => {
       cy.get('#name').type('Decimal Price Test');
       cy.get('#description').type('Testing decimal input');
-      cy.get('#price').type('12.345');
+      // Use 2 decimal places as the input has step="0.01"
+      cy.get('#price').type('12.34');
       cy.get('#submit-btn').click();
 
       cy.get('#message').should('contain', 'Item created successfully!');
-      // Price should be displayed (may be rounded)
+      // Price should be displayed
       cy.get('.item-card').should('contain', 'Decimal Price Test');
+      cy.get('.item-card').should('contain', '$12.34');
     });
   });
 
