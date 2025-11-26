@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        containers: [] # Uses 2 parallel instances
+        containers: [1] # Uses 2 parallel instances
 
     steps:
       - name: Checkout
