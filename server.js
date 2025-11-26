@@ -13,7 +13,9 @@ app.use(express.static('public'));
 // In-memory data store (in production, use a database)
 let items = [
   { id: 1, name: 'Sample Item 1', description: 'This is a sample item', price: 29.99 },
-  { id: 2, name: 'Sample Item 2', description: 'Another sample item', price: 39.99 }
+  { id: 2, name: 'Sample Item 2', description: 'Another sample item', price: 39.99 },
+  { id: 3, name: 'Sample Item 3', description: 'Another sample item - Description 3', price: 39.99 }
+
 ];
 let nextId = 3;
 
