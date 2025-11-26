@@ -816,13 +816,12 @@ describe('Item CRUD Operations', () => {
   });
 
   describe('Button Interaction Tests', () => {
-    it('should disable submit button during form submission', () => {
+    it('should handle button click during form submission', () => {
       // Intercept to add delay
-      cy.intercept('POST', '/api/items', (req) => {
-        req.reply((res) => {
-          cy.wait(500); // Simulate network delay
-          res.send({ statusCode: 201, body: { id: 1, name: 'Test', description: 'Test', price: 10 } });
-        });
+      cy.intercept('POST', '/api/items', {
+        delay: 500,
+        statusCode: 201,
+        body: { id: 999, name: 'Button State Test', description: 'Testing button state', price: 10 }
       }).as('delayedCreate');
 
       cy.get('#name').type('Button State Test');
@@ -830,8 +829,12 @@ describe('Item CRUD Operations', () => {
       cy.get('#price').type('10.00');
       cy.get('#submit-btn').click();
 
-      // Button might be disabled or we can verify it's processing
+      // Wait for the delayed request
+      cy.wait('@delayedCreate');
+      
+      // Verify button is still functional
       cy.get('#submit-btn').should('be.visible');
+      cy.get('#message').should('be.visible');
     });
 
     it('should have proper button styling and hover effects', () => {
