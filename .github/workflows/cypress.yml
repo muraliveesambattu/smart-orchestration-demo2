@@ -1,41 +1,84 @@
-name: Cypress Tests
+name: Cypress Prioritized Tests
 
 on: [push]
 
 jobs:
-  cypress-run:
+  critical-tests:
+    name: Critical Tests (Fast Feedback)
     runs-on: ubuntu-latest
-
-    # Runs tests in parallel with matrix strategy
-    strategy:
-      fail-fast: false
-      matrix:
-        containers: [1,2,3,4,5] # Uses 2 parallel instances
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cypress run
-        # Uses the official Cypress GitHub action
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cypress run - Critical Tests
         uses: cypress-io/github-action@v6
         with:
-          # Starts web server for E2E tests - replace with your own server invocation
+          # Starts web server for E2E tests
           start: npm start
-          wait-on: 'http://localhost:3000' # Waits for above
-
-          # Records to Cypress Cloud 
+          wait-on: 'http://localhost:3000'
+          
+          # Records to Cypress Cloud
           record: true
+          
+          # Only run critical tests
+          spec: cypress/e2e/critical/**/*.cy.js
+        env:
+          # For recording and parallelization to work you must set your CYPRESS_RECORD_KEY
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # GitHub token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  full-regression:
+    name: Full Regression Suite
+    needs: critical-tests   # 👈 run only *after* critical passes
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        containers: [1, 2, 3]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cypress run - Full Regression
+        uses: cypress-io/github-action@v6
+        with:
+          # Starts web server for E2E tests
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          
+          # Records to Cypress Cloud
+          record: true
+          
           # Enable parallelization
           parallel: true
-
-          # 👇 NEW: label each machine (optional but useful)
-          group: github-actions-${{ matrix.containers }}
-
-          # 👇 NEW: SAME build id for all matrix jobs
+          
+          # Label each machine
+          group: regression-${{ matrix.containers }}
+          
+          # Same build id for all matrix jobs
           ci-build-id: ${{ github.run_id }}
-
+          
+          # All e2e tests (critical + regression)
+          spec: cypress/e2e/**/*.cy.js
         env:
           # For recording and parallelization to work you must set your CYPRESS_RECORD_KEY
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
