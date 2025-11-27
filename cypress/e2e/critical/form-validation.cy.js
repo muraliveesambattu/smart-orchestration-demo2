@@ -11,7 +11,7 @@ describe('Form Validation Tests', () => {
   describe('Form Validation', () => {
     it('should validate required fields when creating an item', () => {
       // Try to submit empty form
-      cy.get('#submitt-btn').click();
+      cy.get('#submit-btn').click();
 
       // HTML5 validation should prevent submission
       cy.get('#name').then(($input) => {
