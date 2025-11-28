@@ -2,7 +2,6 @@ describe('Form Validation Tests', () => {
   const baseUrl = 'http://localhost:3000';
   
   beforeEach(() => {
-    // Visit the application before each test
     cy.visit(baseUrl);
     // Wait for the page to load
     cy.get('h1').should('contain', 'CRUD Application');
