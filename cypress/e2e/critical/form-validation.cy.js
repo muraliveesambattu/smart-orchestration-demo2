@@ -12,7 +12,6 @@ describe('Form Validation Tests', () => {
       // Try to submit empty form
       cy.get('#submit-btn').click();
 
-      // HTML5 validation should prevent submission
       cy.get('#name').then(($input) => {
         expect($input[0].validationMessage).to.not.be.empty;
       });
